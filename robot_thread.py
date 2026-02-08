@@ -1,4 +1,3 @@
-import threading
 import time
 import math
 import shared
@@ -25,8 +24,6 @@ def run_robot_loop():
         return
 
     while True:
-        target_pos = None
-        gripper_cmd = None
         
         with shared.cmd_lock:
             if shared.command["target_pos"] is not None:
@@ -42,9 +39,11 @@ def run_robot_loop():
                 angle = int(float(gripper_cmd))
                 print(f"Gripper Command: {angle}")
                 bot.set_gripper(angle)
+                gripper_cmd = None
                 
             except Exception as e:
                 print(f"Gripper Error: {e}")
+                gripper_cmd = None
 
         if target_pos is not None:
             try:
@@ -63,9 +62,11 @@ def run_robot_loop():
                     continue
 
                 bot.move_to_xyz(x, y, z, duration_ms=1000)
+                target_pos = None
                 
             except Exception as e:
                 print(f"Move Error: {e}")
+                target_pos = None
 
         with shared.state_lock:
             shared.robot_state["x"] = bot.last_pos[0]
